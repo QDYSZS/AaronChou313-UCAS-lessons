@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<title>UCAS选课模拟器</title>
+<style>
+:root{
+  --bg:#f4f7fb;--panel:#ffffff;--panel2:#f8fafc;--ink:#172033;--muted:#687386;
+  --line:#e3e9f2;--navy:#152748;--navy2:#263e6c;--blue:#4066d5;--blueSoft:#edf2ff;
+  --green:#198b72;--shadow:0 12px 34px rgba(26,45,82,.08);--radius:18px;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;font-size:14px}
+button,input,select{font:inherit}.wrap{max-width:1540px;margin:auto;padding:24px 28px 56px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(125deg,var(--navy),#1c3562 62%,#325591);color:white;border-radius:24px;padding:30px 34px 28px;box-shadow:0 20px 50px rgba(20,39,72,.18)}
+.hero:after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-150px;top:-250px;border:70px solid rgba(255,255,255,.055)}
+.hero-top{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;position:relative;z-index:1}.eyebrow{font-size:12px;letter-spacing:.16em;opacity:.68;font-weight:700}.hero h1{font-size:30px;line-height:1.2;margin:8px 0 8px;letter-spacing:.01em}.hero p{margin:0;opacity:.73;max-width:760px;line-height:1.75}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(110px,1fr));gap:10px;margin-top:24px;max-width:760px;position:relative;z-index:1}.stat{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 15px;backdrop-filter:blur(6px)}.stat strong{display:block;font-size:22px}.stat span{font-size:12px;opacity:.68}
+.hero-btns{display:flex;flex-direction:column;gap:10px;align-items:stretch;position:relative;z-index:2}.pick-btn{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.11);color:white;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:650;white-space:nowrap}.pick-btn:hover{background:rgba(255,255,255,.17)}.pick-btn .badge-num{display:inline-block;min-width:22px;margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.2);font-size:12px}
+.pick-btn .conf-badge{display:inline-block;min-width:20px;margin-left:4px;padding:1px 6px;border-radius:999px;background:#f6d0c8;color:#8f2d20;font-size:12px;font-weight:800}
+.filter-panel{position:sticky;top:10px;z-index:20;margin:18px 0;background:rgba(255,255,255,.94);border:1px solid rgba(225,232,243,.94);border-radius:20px;box-shadow:var(--shadow);padding:17px 18px 15px;backdrop-filter:blur(13px)}
+.filter-top{display:grid;grid-template-columns:minmax(300px,1.65fr) 1fr auto;gap:12px;align-items:center}.search{position:relative}.search input{width:100%;height:42px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:0 14px 0 40px;outline:none}.search input:focus{border-color:#9db0ec;box-shadow:0 0 0 3px #eef2ff}.search svg{position:absolute;width:17px;left:14px;top:12px;stroke:#8a96aa}
+.segments{display:flex;background:#f0f3f8;border-radius:11px;padding:4px;gap:3px}.segments button{border:0;background:transparent;color:#667188;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:650;flex:1}.segments button.active{background:white;color:#264688;box-shadow:0 2px 8px rgba(30,51,88,.09)}
+.clear{border:1px solid var(--line);background:white;height:42px;padding:0 15px;border-radius:11px;cursor:pointer;color:#5f6c82}.clear:hover{background:#f7f9fc}
+.filters{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin-top:12px}.field label{display:block;color:#8490a3;font-size:11px;margin:0 0 5px 3px}.field select{width:100%;height:39px;border:1px solid var(--line);border-radius:10px;background:white;color:#38445a;padding:0 30px 0 10px;outline:none;text-overflow:ellipsis}.field select:focus{border-color:#a5b6e9}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:19px 3px 10px}.result-title{font-weight:700;font-size:16px}.result-title span{color:var(--blue)}.result-sub{color:var(--muted);font-size:12px;margin-top:3px}.head-actions{display:flex;gap:8px;align-items:center}.toggle{border:1px solid var(--line);background:white;border-radius:10px;padding:8px 11px;cursor:pointer;color:#59667c}.toggle.active{border-color:#a9b8e7;background:var(--blueSoft);color:#3152aa}
+.viewseg{display:flex;background:#eef1f7;border-radius:11px;padding:4px;gap:3px}.viewseg button{border:0;background:transparent;color:#667188;border-radius:8px;padding:8px 15px;cursor:pointer;font-weight:650}.viewseg button.active{background:white;color:#264688;box-shadow:0 2px 8px rgba(30,51,88,.09)}
+.table-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 5px 20px rgba(28,45,77,.035)}.table-scroll{overflow:auto;max-height:calc(100vh - 270px)}table{width:100%;border-collapse:separate;border-spacing:0;min-width:1200px}thead th{position:sticky;top:0;z-index:4;background:#f7f9fc;color:#6c788d;text-align:left;font-size:11px;font-weight:700;letter-spacing:.02em;padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:default}thead th.sortable{cursor:pointer}thead th.sortable:hover{color:#3159b4}tbody td{padding:11px 10px;border-bottom:1px solid #edf1f6;vertical-align:middle;color:#445067}tbody tr:hover{background:#fafcff}tbody tr:last-child td{border-bottom:0}
+.course-name{font-weight:690;color:#1f2c43;line-height:1.4}.course-name small{display:block;color:#98a2b3;font-weight:400;font-size:11px;margin-top:2px;line-height:1.45}.name-link{cursor:pointer}.name-link:hover{color:var(--blue);text-decoration:underline}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#8a95a8;white-space:nowrap}.code a{color:#3152aa;text-decoration:none;font-weight:650}.code a:hover{text-decoration:underline;color:#4066d5}.si-code a{color:#3152aa;text-decoration:none;font-weight:650}.si-code a:hover{text-decoration:underline}.dd-syl{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:8px;background:var(--blueSoft);color:#3152aa;font-size:12.5px;font-weight:700;text-decoration:none}.dd-syl:hover{background:#dbe7ff}.college{white-space:nowrap}.subj{white-space:nowrap}.nowrap{white-space:nowrap}.num{text-align:right;font-variant-numeric:tabular-nums}
+.slot-chip{display:inline-block;background:var(--blueSoft);color:#3152aa;border-radius:7px;padding:2px 7px;font-size:11px;margin:1px 3px 1px 0;white-space:nowrap;font-weight:600}.slot-chip .room{margin-left:4px;padding:0 4px;border-radius:5px;background:#fff5de;color:#8a6c2a;font-weight:600}.slot-chip.multi{border-left:3px solid var(--blue)}
+.teacher{color:#4b5870;font-size:12.5px;white-space:nowrap}.teacher small{display:block;color:#9aa3b4;font-size:11px}.method{font-size:12px;color:#4b5870;white-space:nowrap}.level{font-size:12px;color:#5a6780;white-space:nowrap}
+.seat{font-weight:700;font-variant-numeric:tabular-nums}.seat.full{color:#c0392b}.seat.low{color:#d97b29}.seat.ok{color:#198b72}.seat-text{font-size:10.5px;color:#9aa3b4;display:block}
+.star{border:0;background:transparent;font-size:19px;line-height:1;cursor:pointer;color:#c3cad5;padding:2px 5px}.star.on{color:#e0a822}
+.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:650;white-space:nowrap}.b-core{background:#edf2ff;color:#4361bd}.b-pro{background:#e9f7f2;color:#237862}.b-public{background:#fff5de;color:#956a14}.b-seminar{background:#f5ecff;color:#7950a5}.b-lab{background:#eaf7ff;color:#26739b}.b-other{background:#f1f3f7;color:#667187}.semester{font-weight:700}.autumn{color:#aa6228}.spring{color:#2f7a62}
+.pager{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-top:1px solid var(--line);background:#fbfcfe;color:#778397;font-size:12px}.pager-controls{display:flex;gap:5px;align-items:center}.pager button,.pager select{border:1px solid var(--line);background:white;border-radius:8px;height:32px;padding:0 10px;color:#566279}.pager button{cursor:pointer}.pager button:disabled{opacity:.35;cursor:default}.page-now{font-weight:650;color:#2f3d56;padding:0 5px}
+.empty{padding:70px 20px;text-align:center;color:#8b96a7}.empty strong{display:block;color:#46536a;font-size:17px;margin-bottom:7px}
+
+/* ============ 模拟课程表 ============ */
+.timetable-panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 5px 20px rgba(28,45,77,.035);padding:18px}
+.tt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.tt-title{font-weight:800;font-size:17px}.tt-title span{color:var(--blue)}
+.tt-sub{color:var(--muted);font-size:12px;margin-top:4px}
+.tt-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tt-controls button{border:1px solid var(--line);background:white;border-radius:10px;height:36px;padding:0 12px;color:#4b5870;cursor:pointer;outline:none}
+.tt-seg{display:flex;background:#eef1f7;border-radius:11px;padding:3px;gap:3px}
+.tt-seg button{border:0;background:transparent;color:#667188;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:650;height:auto}
+.tt-seg button.active{background:white;color:#264688;box-shadow:0 2px 8px rgba(30,51,88,.09)}
+.week-nav{display:flex;align-items:center;gap:5px}
+.week-nav button{width:38px;padding:0;font-size:17px;border-radius:50%}
+.week-nav button:disabled{opacity:.3;cursor:default}
+#weekLabel{font-weight:750;color:#26304a;font-size:13px;min-width:96px;text-align:center;white-space:nowrap}
+.tt-day-date{font-size:10px;color:#8a96aa;font-weight:700}
+.conflict-panel{display:none;margin:0 0 12px;padding:12px 14px;border-radius:12px;background:#fdf2f0;border:1px solid #f3d2cc;color:#8f3a2c;font-size:13px}
+.conflict-panel.show{display:block}
+.conflict-panel b{font-size:13.5px}.conflict-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.conflict-item{background:white;border:1px solid #f0d6d0;border-radius:9px;padding:8px 11px;font-size:12.5px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.conflict-item .vs{color:#c0392b;font-weight:800}
+.conflict-item .where{color:#7d4a3e;font-weight:650}
+.tt-grid-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:white}
+.tg{display:grid;grid-template-columns:64px repeat(7,minmax(120px,1fr));grid-template-rows:42px repeat(13,46px);min-width:940px}
+.t-corner{border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:#f7f9fc;color:#6c788d;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.t-day{border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:#f7f9fc;color:#40506a;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px}
+.t-day .dot{width:6px;height:6px;border-radius:50%;background:#e1e6ef}
+.times-col{border-right:1px solid var(--line);background:#fbfcfe}
+.time-cell{height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#7c889b;font-size:10.5px;border-bottom:1px solid #eef2f7;line-height:1.25}
+.time-cell b{font-size:11.5px;color:#59667c}
+.day-col{position:relative;border-right:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0 45px,#f2f5fa 45px 46px);min-height:598px}
+.day-col.sat,.day-col.sun{background:repeating-linear-gradient(to bottom,transparent 0 45px,#f6f3ef 45px 46px)}
+.slot-block{position:absolute;border-radius:8px;padding:4px 6px;font-size:11px;line-height:1.35;overflow:hidden;cursor:pointer;box-shadow:0 1px 4px rgba(20,35,60,.10);z-index:1;border:1px solid transparent;transition:opacity .15s}
+.slot-block .sb-name{font-weight:750;font-size:11.5px;color:inherit;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.slot-block .sb-time{opacity:.85;margin-top:1px;white-space:nowrap}
+.slot-block.inactive{opacity:.16;filter:grayscale(.4);z-index:0}
+.slot-block.conflict{border:2px solid #c0392b;box-shadow:0 0 0 2px #fdecea}
+.slot-block.conflict::after{content:"⚠";position:absolute;top:2px;right:4px;font-size:11px;color:#c0392b}
+.tt-legend{display:flex;gap:16px;margin-top:10px;color:#7c889b;font-size:11.5px;flex-wrap:wrap;align-items:center}
+.legend-chip{display:inline-flex;align-items:center;gap:6px}.legend-chip i{width:22px;height:12px;border-radius:4px;display:inline-block}
+.legend-chip i.cfl{border:2px solid #c0392b;background:#fdecea}
+.legend-chip i.off{background:#dfe4ee;opacity:.5}
+.tt-note{margin-top:12px;font-size:11px;color:#8b96a8;line-height:1.7}
+.no-sched{margin-top:12px;padding:11px 13px;background:#fff8ec;border:1px solid #f3e2c2;border-radius:11px;color:#8a6c2a;font-size:12.5px;line-height:1.8}
+.no-sched b{color:#6d521f}
+.tt-empty{padding:56px 20px;text-align:center;color:#8b96a7}.tt-empty strong{display:block;color:#46536a;font-size:16px;margin-bottom:6px}
+.sched-summary{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.sched-summary .chip-s{display:flex;align-items:center;gap:7px;background:#f4f7fc;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12px;color:#45516a}
+.sched-summary .chip-s i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.chip-s .ch-name{font-weight:700;color:#26304a}
+.chip-s .ch-seat{font-weight:700;font-variant-numeric:tabular-nums}
+.chip-s .ch-seat.full{color:#c0392b}.chip-s .ch-seat.low{color:#d97b29}
+
+/* ============ 抽屉 / 详情 ============ */
+.drawer-mask{position:fixed;inset:0;background:rgba(15,26,48,.28);z-index:50;opacity:0;pointer-events:none;transition:.2s}.drawer-mask.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;right:0;top:0;height:100vh;width:min(560px,94vw);background:white;z-index:51;transform:translateX(102%);transition:.22s ease;box-shadow:none;display:flex;flex-direction:column}.drawer.open{transform:none;box-shadow:-22px 0 55px rgba(20,35,60,.17)}
+.drawer-head{padding:21px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.drawer-head h2{margin:0;font-size:19px}.drawer-head p{margin:4px 0 0;color:#7d899b;font-size:12px}
+.close{border:0;background:#f2f5f9;border-radius:9px;width:34px;height:34px;cursor:pointer;font-size:20px;color:#657187}
+.selected-list{overflow:auto;flex:1;padding:10px 14px}
+.selected-item{border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin:8px 2px;background:#fff;box-shadow:0 1px 4px rgba(28,45,77,.04)}
+.si-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.si-head b{font-size:14px;color:#1f2c43;line-height:1.4}
+.remove{border:0;background:#f2f5f9;border-radius:8px;width:26px;height:26px;cursor:pointer;color:#8a5a5a;font-size:13px;flex:none;line-height:1}.remove:hover{background:#fbe9e7;color:#c0392b}
+.si-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;color:#8a95a8;margin-top:4px}
+.si-meta{font-size:12px;color:#4b5870;margin-top:5px;line-height:1.55}
+.si-meta .badge{margin-right:2px}
+.si-sched{margin-top:8px;border-top:1px dashed #e6ebf3;padding-top:7px}
+.si-sched-label{font-size:10.5px;color:#98a2b3;margin-bottom:4px}
+.si-sched-item{font-size:11.5px;background:#f4f7fc;border:1px solid #e8edf5;border-radius:7px;padding:3px 8px;color:#3d4a63;margin-top:3px;line-height:1.6}
+.si-sched-item b{color:#3152aa;font-weight:700}
+.si-seat{font-size:12px;margin-top:8px;color:#4b5870;font-weight:650;font-variant-numeric:tabular-nums}
+.si-seat .seat.ok{color:#198b72}.si-seat .seat.low{color:#d97b29}.si-seat .seat.full{color:#c0392b}
+.si-warn{font-size:11px;color:#c0392b;margin-top:6px;font-weight:650;background:#fdf2f0;border:1px solid #f3d2cc;border-radius:7px;padding:5px 8px}
+.drawer-foot{border-top:1px solid var(--line);padding:14px 18px;background:#fbfcfe}.drawer-foot .sum{display:flex;justify-content:space-between;margin-bottom:10px;color:#4d5a70}.export-row{display:flex;gap:8px}.export{flex:1;border:0;background:var(--navy);color:white;padding:11px;border-radius:10px;cursor:pointer;font-weight:700}.export.alt{background:#14856e}.export.alt:hover{filter:brightness(1.08)}
+.note{font-size:11px;color:#8b96a8;line-height:1.7;margin:11px 4px 0}
+
+/* 课程详情抽屉 */
+.dd-body{overflow:auto;flex:1;padding:18px 22px}
+.dd-title h2{margin:0;font-size:20px;line-height:1.35}.dd-title .en{color:#8a95a8;font-size:13px;margin-top:3px}.dd-title .code{display:inline-block;margin-top:8px;background:#f1f4f9;border-radius:7px;padding:3px 9px}
+.dd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 20px;margin-top:16px}
+.dd-item{border-bottom:1px dashed #edf1f6;padding-bottom:9px}.dd-item label{display:block;color:#98a2b3;font-size:11px;margin-bottom:3px}.dd-item b{font-size:13px;color:#26304a;font-weight:650}
+.dd-sec{margin-top:20px}.dd-sec h3{font-size:13px;color:#40506a;margin:0 0 9px;padding-left:8px;border-left:3px solid var(--blue)}
+.dd-schedule{width:100%;border-collapse:collapse;font-size:12.5px}.dd-schedule th{background:#f7f9fc;color:#6c788d;font-size:11px;padding:7px 8px;text-align:left;border-bottom:1px solid var(--line)}.dd-schedule td{padding:8px;border-bottom:1px solid #edf1f6;color:#445067}
+.dd-teacher{display:flex;flex-direction:column;gap:7px}.dd-teacher .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:8px 10px;background:#f7f9fc;border-radius:9px}.row .who{color:#26304a;font-weight:650}.row .unit{color:#8a95a8;font-size:12px}
+.dd-kv{display:flex;gap:10px;flex-wrap:wrap}.dd-kv .kv{flex:1;min-width:130px;background:#f7f9fc;border-radius:9px;padding:9px 11px}.dd-kv .kv label{display:block;color:#98a2b3;font-size:11px}.dd-kv .kv b{font-size:13px;color:#26304a}
+.seat-bar{height:7px;background:#eef1f6;border-radius:99px;overflow:hidden;margin-top:6px}.seat-bar i{display:block;height:100%;border-radius:99px}
+.dd-star{width:100%;margin-top:18px;border:0;background:var(--navy);color:white;padding:12px;border-radius:11px;cursor:pointer;font-weight:750;font-size:14px}.dd-star.on{background:#e8a51d;color:#3c2d05}
+.changelog-list{overflow:auto;flex:1;padding:14px 22px}.cl-item{padding:14px 0;border-bottom:1px solid #edf1f5}.cl-item:last-child{border-bottom:0}.cl-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.cl-date{font-size:11px;color:#98a2b3;font-weight:650}.cl-ver{font-weight:800;color:#3152aa;font-size:13.5px}.cl-ver.latest{background:var(--blueSoft);padding:2px 10px;border-radius:99px}.cl-item ul{margin:8px 0 0;padding-left:18px;color:#445067;font-size:12.5px;line-height:1.85}.data-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:11px 14px;border-radius:12px;background:#fff8ec;border:1px solid #f0dfb6;color:#8a6c2a;font-size:13px}
+.data-banner button{border:1px solid #e2c886;background:white;border-radius:8px;padding:4px 12px;cursor:pointer;color:#6d521f;font-weight:650}
+.data-banner code{background:#f5e9c8;padding:0 5px;border-radius:5px}
+.ds-body{padding:14px 18px}
+.ds-title{font-size:12.5px;color:#5a6780;font-weight:750;margin:4px 2px 8px}
+.preset-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;background:#fff;cursor:pointer}
+.preset-item:hover{border-color:#a9b8e7}
+.preset-item input{accent-color:var(--blue);width:16px;height:16px;flex:none}
+.pi-name{font-weight:700;color:#26304a;font-size:13.5px}
+.pi-meta{margin-left:auto;font-size:11.5px;color:#8a95a8;white-space:nowrap}
+.ds-filebtn{margin-top:14px}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#20304e;color:white;padding:11px 18px;border-radius:12px;font-size:13px;box-shadow:0 12px 30px rgba(20,35,60,.25);opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:86vw}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}#toast.warn{background:#9a3a2b}
+@media(max-width:1100px){.filters{grid-template-columns:repeat(3,1fr)}.filter-top{grid-template-columns:1.4fr 1fr auto}.stats{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:760px){.wrap{padding:12px 12px 35px}.hero{padding:22px 20px;border-radius:18px}.hero-top{display:block}.hero-btns{margin-top:17px;flex-direction:row}.pick-btn{margin-top:0}.hero h1{font-size:24px}.stats{grid-template-columns:repeat(2,1fr)}.filter-panel{position:relative;top:auto;padding:13px}.filter-top{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,1fr)}.clear{width:100%}.table-scroll{max-height:none}.result-head{align-items:flex-end}.result-sub{max-width:60vw}.head-actions{flex-direction:column;align-items:stretch}.note{font-size:10px}.dd-grid{grid-template-columns:1fr}.timetable-panel{padding:12px}}
+
+/* 数据入口优先，选课操作紧邻课程结果。 */
+[hidden]{display:none!important}
+.hero{padding:24px 28px}
+.hero h1{margin:0 0 8px}
+.hero p{max-width:960px;opacity:1;color:#dce5f5}
+.hero .hero-purpose{color:white;font-size:15px}
+.hero .data-intro{margin-top:12px;font-size:13px;line-height:1.8}
+.data-intro strong{font-weight:600;color:white}
+.hero-link{border:0;background:transparent;color:#dce5f5;padding:8px;cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:4px;min-height:44px}
+.dataset-entry{position:relative;z-index:1;margin-top:20px}
+.dataset-actions{display:flex;gap:12px;flex-wrap:wrap}
+.dataset-primary{display:flex;gap:16px;align-items:center;justify-content:center;background:white;color:var(--navy);border:1px solid white;border-radius:12px;padding:12px 20px;font-weight:750;cursor:pointer;min-height:48px}
+.dataset-primary span{font-size:12px;font-weight:500;color:#536583}
+.dataset-primary:hover{background:#edf2ff}
+.hero .import-hint{font-size:12px;margin-top:8px}
+.dataset-summary{position:relative;z-index:1;margin-top:16px;padding-top:12px;border-top:1px solid #ffffff30;color:#dce5f5;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+.stats{display:flex;flex-wrap:wrap;gap:12px 28px;margin:16px 4px 0;max-width:none}
+.stat{display:flex;gap:8px;align-items:baseline;background:none;border:0;border-radius:0;padding:0;backdrop-filter:none}
+.stat strong{font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat span{color:#59667c;opacity:1}
+.result-head{flex-wrap:wrap;align-items:center}
+.head-actions{flex-wrap:wrap}
+.selected-action{background:var(--navy);color:white;border-color:var(--navy)}
+.selected-action #heroSelected{margin-left:6px;font-weight:700}
+.conf-badge{margin-left:6px;background:#f6d0c8;color:#8f2d20;border-radius:6px;padding:1px 5px}
+.dataset-help{color:#59667c;line-height:1.8;font-size:13px;margin:0 2px 12px}
+.import-title{margin-top:28px;font-size:15px}
+.preset-item{min-height:56px;flex-wrap:wrap}
+.pi-meta{color:#59667c}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.hero button:focus-visible{outline-color:white}
+@media(max-width:760px){
+  .hero{padding:20px}.hero-top{display:flex;gap:8px}.hero h1{font-size:24px}
+  .hero-link{font-size:12px;padding:4px;min-height:44px}
+  .dataset-actions{display:grid;grid-template-columns:1fr}.dataset-actions button{min-height:48px}
+  .stats{gap:8px 20px}.stat strong{font-size:16px}
+  .result-head{align-items:stretch;gap:12px}.result-sub{max-width:none}
+  .head-actions{flex-direction:row;align-items:center;gap:8px;width:100%}
+  .viewseg{width:100%}.viewseg button{flex:1;min-height:40px}.toggle{min-height:44px}
+  .pi-meta{width:100%;margin-left:26px}.filter-panel{margin-top:12px}
+}
+
+.filter-hint{margin:12px 3px 0;color:#59667c;font-size:12px;line-height:1.6}
+.multi-filter{position:relative;min-width:0}
+.multi-filter summary{display:flex;align-items:center;gap:8px;min-height:42px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:white;color:#38445a;cursor:pointer;list-style:none}
+.multi-filter summary::-webkit-details-marker{display:none}
+.multi-filter summary::after{content:'⌄';margin-left:auto;flex:none}
+.multi-filter summary span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.multi-filter summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.multi-filter.has-selection summary{background:var(--blueSoft);border-color:#a9b8e7;color:#264688}
+.multi-filter[open]{z-index:25}
+.multi-panel{position:absolute;top:calc(100% + 6px);left:0;width:100%;min-width:0;background:white;border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 10px 24px rgba(26,45,82,.14)}
+.multi-search{width:100%;min-width:0;height:38px;padding:8px;border:1px solid var(--line);border-radius:8px}
+.multi-clear{border:0;background:none;color:#3152aa;cursor:pointer;padding:10px 0;min-height:40px;font-size:12px}
+.multi-options{max-height:240px;overflow:auto;overscroll-behavior:contain}
+.field .multi-option{display:flex;align-items:center;gap:8px;min-height:40px;margin:0;padding:6px 4px;color:#38445a;font-size:13px;cursor:pointer}
+.multi-option:hover{background:var(--panel2)}
+.multi-option input{width:16px;height:16px;flex:none;accent-color:var(--blue)}
+.multi-option span{overflow-wrap:anywhere}.multi-option small{margin-left:auto;color:#59667c}
+@media(max-width:760px){.multi-panel{padding:8px}.field .multi-option{min-height:44px}.multi-options{max-height:220px}.multi-filter summary{min-height:44px}}
+
+.filter-top{grid-template-columns:minmax(0,1fr) auto}.filters{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){.filter-top{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters>.field:first-child{grid-column:1 / -1}}
+
+.filter-details-head{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:8px}
+.filter-details-head .filter-hint{margin:0}
+.filter-reset{border:0;background:none;padding:8px 4px;color:#3152aa;cursor:pointer;font-size:12px;white-space:nowrap;min-height:36px}
+.filter-collapse{display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.filter-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.filter-tag{display:inline-flex;align-items:center;gap:8px;max-width:100%;border:1px solid #d4def4;border-radius:8px;padding:5px 9px;background:var(--blueSoft);color:#264688;font-size:12px;line-height:1.5;cursor:pointer;min-height:32px}
+.filter-tag span:first-child{overflow-wrap:anywhere;text-align:left}.filter-tag span:last-child{flex:none;color:#526a9c}
+.filter-tag:hover{background:#e0e9fc;border-color:#a9b8e7}
+.filter-panel.collapsed{padding-top:12px;padding-bottom:12px}
+@media(max-width:760px){.filter-top{grid-template-columns:minmax(0,1fr) auto;gap:8px}.filter-collapse{width:auto;padding:0 10px;font-size:12px;min-height:44px}.filter-details-head{align-items:flex-start;gap:8px}.filter-reset{min-height:44px}.filter-tag{min-height:36px}.filter-tags{gap:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero" aria-labelledby="pageTitle">
+    <div class="hero-top">
+      <div>
+        <h1 id="pageTitle">UCAS选课模拟器</h1>
+        <p class="hero-purpose">选择课程数据，筛选心仪课程，预览课表与时间冲突。</p>
+      </div>
+      <button class="hero-link" id="openChangelog">更新日志</button>
+    </div>
+    <p class="data-intro">目前预设数据为国科大 SEP 选课系统 <strong>2026年秋季开课数据（包含完整开班信息）</strong>，和 <strong>2027年春季计划开课数据（无完整开班信息）</strong>。</p>
+    <p class="data-intro">四个预设数据集分别对应 SEP 选课系统的四个地区：京内学院、京外学院、研究所、培养基地，可多选组合。春季计划随京内学院预设提供。</p>
+    <div class="dataset-entry">
+      <div class="dataset-actions">
+        <button class="dataset-primary" id="openDataset" aria-controls="datasetDrawer">选择预设数据集 <span>4 个地区</span></button>
+        <button class="pick-btn" id="importDataset">导入课程数据</button>
+      </div>
+      <p class="import-hint">其他学校也可导入符合格式的 JSON 课程数据。</p>
+    </div>
+    <div class="dataset-summary" role="status" aria-live="polite"><span id="datasetStatus">正在加载预设数据…</span></div>
+  </section>
+  <div class="stats" aria-label="当前数据统计">
+    <div class="stat"><strong id="statTotal">0</strong><span>课程记录</span></div>
+    <div class="stat"><strong id="statCollege">0</strong><span>开课院系</span></div>
+    <div class="stat"><strong id="statFirst">0</strong><span>一级学科分类</span></div>
+    <div class="stat"><strong id="statCat">0</strong><span>课程类别</span></div>
+  </div>
+
+  <div id="dataBanner" class="data-banner" hidden>⚠️ <b id="dataBannerMsg">数据加载失败</b> <span class="db-actions"><button id="bannerReload">重试</button></span></div>
+
+  <section class="filter-panel" id="filterPanel">
+    <div class="filter-top">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        <input id="search" aria-label="搜索课程" placeholder="搜索课程名 / 编码 / 学院 / 学科 / 教师 / 教室……" autocomplete="off" />
+      </div>
+      <button class="clear filter-collapse" id="toggleFilters" aria-expanded="true" aria-controls="filterDetails">收起筛选 <span aria-hidden="true">⌃</span></button>
+    </div>
+    <div class="filter-tags" id="filterTags" aria-label="当前筛选条件" hidden></div>
+    <div id="filterDetails">
+    <div class="filter-details-head"><p class="filter-hint">以下条件可多选：同项满足任一选项，不同项同时满足。</p><button class="filter-reset" id="clearFilters">清空筛选</button></div>
+    <div class="filters">
+      <div class="field"><label id="semesterLabel">开课学期</label><details class="multi-filter" id="semester"><summary aria-labelledby="semesterLabel semesterSummary"><span id="semesterSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索学期" placeholder="搜索学期"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="collegeLabel">开课院系</label><details class="multi-filter" id="college"><summary aria-labelledby="collegeLabel collegeSummary"><span id="collegeSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="firstLabel">一级学科 / 专业类别</label><details class="multi-filter" id="first"><summary aria-labelledby="firstLabel firstSummary"><span id="firstSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="secondLabel">二级学科 / 专业</label><details class="multi-filter" id="second"><summary aria-labelledby="secondLabel secondSummary"><span id="secondSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="categoryLabel">课程类别</label><details class="multi-filter" id="category"><summary aria-labelledby="categoryLabel categorySummary"><span id="categorySummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="campusLabel">开课校区</label><details class="multi-filter" id="campus"><summary aria-labelledby="campusLabel campusSummary"><span id="campusSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="creditsLabel">学分</label><details class="multi-filter" id="credits"><summary aria-labelledby="creditsLabel creditsSummary"><span id="creditsSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="examLabel">考试方式</label><details class="multi-filter" id="exam"><summary aria-labelledby="examLabel examSummary"><span id="examSummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+      <div class="field"><label id="dayLabel">星期</label><details class="multi-filter" id="day"><summary aria-labelledby="dayLabel daySummary"><span id="daySummary"></span></summary><div class="multi-panel"><input class="multi-search" type="search" aria-label="搜索筛选选项" placeholder="搜索选项"><button type="button" class="multi-clear">取消本项筛选</button><div class="multi-options"></div></div></details></div>
+    </div>
+    </div>
+  </section>
+
+  <div class="result-head">
+    <div><div class="result-title">找到 <span id="resultCount">0</span> 门课程</div><div class="result-sub" id="resultSub">正在整理筛选结果</div></div>
+    <div class="head-actions">
+      <div class="viewseg" id="viewSeg">
+        <button data-v="list" class="active">📋 课程列表</button><button data-v="timetable">📅 模拟课程表</button>
+      </div>
+      <button class="toggle selected-action" id="openSelected">已选课程 <span id="heroSelected">0</span><span class="conf-badge" id="heroConflict" hidden>0</span></button>
+      <button class="toggle" id="onlySelected">☆ 仅看已选</button>
+      <button class="toggle" id="onlyNoConflict" title="仅显示与已选课程上课时间不冲突的课程">不看冲突</button>
+    </div>
+  </div>
+
+  <section class="table-card" id="listView">
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th style="width:38px"></th>
+          <th class="sortable" data-sort="name">课程名称 ↕</th>
+          <th class="sortable num" data-sort="credits">学分 ↕</th>
+          <th class="sortable" data-sort="teacher">教师 ↕</th>
+          <th class="sortable" data-sort="exam">考试方式 ↕</th>
+          <th class="sortable" data-sort="teach">授课方式 ↕</th>
+          <th>上课时间</th>
+          <th class="sortable" data-sort="category">课程类别 ↕</th>
+          <th class="sortable" data-sort="level">培养层次 ↕</th>
+          <th class="sortable" data-sort="campus">校区 ↕</th>
+          <th class="sortable" data-sort="semester">学期 ↕</th>
+          <th class="sortable num" data-sort="seat">余量 ↕</th>
+          <th class="sortable num" data-sort="hours">学时 ↕</th>
+          <th class="sortable" data-sort="college">开课院系 ↕</th>
+          <th class="sortable" data-sort="first">一级学科 ↕</th>
+          <th class="sortable" data-sort="second">二级学科 / 专业 ↕</th>
+          <th>课程编码</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden><strong>没有匹配的课程</strong>试试清除部分筛选条件或换一个关键词。</div>
+    </div>
+    <div class="pager">
+      <div id="rangeText">—</div>
+      <div class="pager-controls"><span>每页</span><select id="pageSize"><option>25</option><option selected>50</option><option>100</option><option>200</option></select><button id="prev">上一页</button><span class="page-now" id="pageNow">1 / 1</span><button id="next">下一页</button></div>
+    </div>
+  </section>
+
+  <section class="timetable-panel" id="timetableView" hidden>
+    <div class="tt-head">
+      <div>
+        <div class="tt-title">模拟课程表 <span id="ttCount">0</span></div>
+        <div class="tt-sub" id="ttSub">将课程加入已选后即可在此预览每周上课安排。</div>
+      </div>
+      <div class="tt-controls">
+        <div class="tt-seg" id="ttModeSeg">
+          <button data-m="overview" class="active">整学期课表</button>
+          <button data-m="weekly">每周课表</button>
+        </div>
+        <div class="week-nav" id="weekNav" hidden>
+          <button id="weekPrev" title="上一周">‹</button>
+          <span id="weekLabel">第 1 周</span>
+          <button id="weekNext" title="下一周">›</button>
+        </div>
+        <button id="ttShowNoSched" class="active">含无课表课程</button>
+      </div>
+    </div>
+    <div class="conflict-panel" id="conflictPanel">
+      <b>⚠ 检测到课程时间冲突 <span id="conflictCount">0</span> 处</b>
+      <div class="conflict-list" id="conflictList"></div>
+    </div>
+    <div id="ttBody"></div>
+    <div class="tt-legend">
+      <span class="legend-chip"><i style="background:#dbe7ff"></i> 课程色块</span>
+      <span class="legend-chip"><i class="cfl"></i> 时间冲突</span>
+      <span class="legend-chip"><i class="off"></i> 所选周次无课</span>
+      <span>点击色块查看课程详情</span>
+    </div>
+    <div class="tt-note">说明：节次时间为常见授课时段（上午 1–4 节、下午 5–8 节、晚上 10–13 节），仅供参考；第 3 周等少数周次为学校统一安排的补课/考试时段。秋季学期第 1 周起算，实际校历周次以学校公布为准。</div>
+  </section>
+
+  <div class="note">说明：秋季学期为官网正式排课数据（2026年秋季学期课表），春季学期沿用开课计划数据，未含具体排课；一级/二级学科由课程编码自动归类，自设、交叉或无法唯一识别的学科保留在“其他 / 自设学科”等分类中。本页面仅用于选课模拟，最终开课与排课情况以学校实际发布为准。</div>
+</div>
+
+<div class="drawer-mask" id="mask"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head"><div><h2>已选课程</h2><p>你的选课保存在当前浏览器，可导出 CSV；模拟课程表基于已选课程生成。</p></div><button class="close" id="closeDrawer">×</button></div>
+  <div class="selected-list" id="selectedList"></div>
+  <div class="drawer-foot"><div class="sum"><span id="selectedSummary">0 门课程</span><strong id="creditSummary">0 学分</strong></div>
+    <div class="export-row"><button class="export" id="exportCsv" title="包含完整课程信息与大纲链接">导出已选课程信息</button><button class="export alt" id="exportTimetable" title="导出为 WakeUp 课程表可导入的 CSV（课程名称/星期/节次/老师/地点/周数）">导出课程表</button></div>
+    <div class="note" style="margin-top:8px">「导出课程表」生成 WakeUp 等 App 可导入的 CSV，按已选课程的秋季排课展开。</div></div>
+</aside>
+
+<aside class="drawer" id="detailDrawer">
+  <div class="drawer-head"><div><h2>课程详情</h2><p>点击外部任意位置关闭</p></div><button class="close" id="closeDetail">×</button></div>
+  <div class="dd-body" id="detailBody"></div>
+</aside>
+
+<aside class="drawer" id="changelogDrawer">
+  <div class="drawer-head"><div><h2>更新日志</h2><p>UCAS 选课浏览器 · 版本记录</p></div><button class="close" id="closeChangelog">×</button></div>
+  <div class="changelog-list">
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver latest">v3.2</span><span class="cl-date">2026-09-07</span></div>
+      <ul>
+        <li>筛选区支持展开与收起，收起后保留搜索栏，将已选条件显示为紧凑标签，为课程列表留出更多空间。</li>
+        <li>筛选标签支持逐项移除与一键清空，折叠时仍可搜索课程，已选筛选条件保持生效。</li>
+        <li>记住筛选区折叠状态，刷新后恢复；适配手机布局并支持键盘操作。</li>
+      </ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v3.1</span><span class="cl-date">2026-09-07</span></div>
+      <ul>
+        <li>页面更名为「UCAS选课模拟器」，明确国科大 SEP 2026 年秋季完整开班数据与 2027 年春季计划数据的来源及覆盖范围。</li>
+        <li>预设选择与数据导入前置，显示当前数据来源；精简课程统计，将已选课程与课表入口集中到课程操作区，优化手机布局。</li>
+        <li>京内预设恢复 1480 门春季计划；保留同编码的不同开班记录，修复切换数据时已选课程错位与空数据统计未清零的问题。</li>
+        <li>九项筛选支持多选与选项搜索，同项取并集、不同项取交集；「不与已选冲突」按钮简化为「不看冲突」。</li>
+        <li>移除固定学期切换按钮，新增独立的「开课学期」多选筛选，随数据集显示年份及春、夏、秋等学期；不同学期的课程不再误报时间冲突。</li>
+        <li>补充 JSON 导入格式说明、示例下载与格式错误提示。</li>
+      </ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v3.0</span><span class="cl-date">2026-09-07</span></div>
+      <ul><li>工具与数据分离：课程数据外置到 presets/，页面从 1.9MB 瘦身到 ~70KB</li><li>国科大预设：京内 / 京外 / 研究所 / 基地四份可勾选组合（共 2979 门秋季排课课）</li><li>支持从本地加载 .json 数据文件，可接入其他学期 / 其他来源的课程数据</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v2.4</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>课程表加入校历日期（秋季 2026-08-31 起共 20 周 / 春季 2027-02-22 起共 16 周），每周视图逐日显示日期</li><li>新增「整学期课表 / 每周课表」切换，每周模式用 ‹ › 箭头快速换周</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v2.3</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>课程编码可点击跳转教学大纲页（表格、详情抽屉、已选列表）</li><li>课程详情抽屉新增"查看教学大纲"按钮</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v2.2</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>新增按星期筛选（周一~周日）</li><li>新增"不与已选冲突"筛选，一键筛出与已选课程不冲突的课程</li><li>筛选面板 8 项改为 4×2 两行排布</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v2.1</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>新增培养层次列（硕士课程 / 硕博通用课程 / 博士课程）</li><li>采集并内置 2078 门秋季课程教学大纲（含大纲内容、教材、参考书）</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v2.0</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>新增考试方式筛选（闭卷笔试 / 课堂开卷 / 读书报告等）</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.9</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>表格新增授课方式、考试方式列</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.8</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>表格恢复内容自适应宽度，所有列信息完整显示、不再截断</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.7</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>重排表格列序：教师、学分、考试方式等关键信息前置</li><li>表格随窗口宽度自适应，加宽窗口即可完整显示全部列</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.6</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>学分列移至课程名称之后</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.5</span><span class="cl-date">2026-09-02</span></div>
+      <ul><li>"待选课程"更名"已选课程"</li><li>已选列表升级为信息卡片，展示课程完整信息（编码、上课安排、教师、授课/考试方式、选课人数等）</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.4</span><span class="cl-date">2026-09-01</span></div>
+      <ul><li>修复课程表色块文字在浅色背景上的可读性问题</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.3</span><span class="cl-date">2026-09-01</span></div>
+      <ul><li>入口重命名为 index.html 适配 GitHub Pages，添加 .nojekyll 修复静态页面托管</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.2</span><span class="cl-date">2026-09-01</span></div>
+      <ul><li>接入官网 2026 秋季正式排课数据（2079 门课程：教室、开课周、任课教师、选课人数）</li><li>新增模拟课程表（周视图网格 + 按第 1-20 周模拟当周上课情况）</li><li>自动课程时间冲突检测（同时考虑星期、节次、周次交集）</li></ul>
+    </div>
+    <div class="cl-item">
+      <div class="cl-head"><span class="cl-ver">v1.0</span><span class="cl-date">2026-08</span></div>
+      <ul><li>基于《2026-2027学年秋季和春季开课计划表0828》制作选课浏览页</li><li>2974 门课程浏览、多条件筛选、搜索、星标收藏、CSV 导出</li></ul>
+    </div>
+  </div>
+</aside>
+
+<aside class="drawer" id="datasetDrawer">
+  <div class="drawer-head"><div><h2>课程数据集</h2><p>选择地区后自动加载，可多选组合</p></div><button class="close" id="closeDataset" aria-label="关闭数据集面板">×</button></div>
+  <div class="selected-list ds-body">
+    <div class="ds-title">国科大 SEP · 四个地区</div>
+    <p class="dataset-help">秋季为 2026 年完整开班数据；京内学院另含 2027 年春季计划，无完整开班信息。</p>
+    <div id="presetList" class="preset-list"></div>
+    <h3 class="ds-title import-title">导入其他课程数据</h3>
+    <p class="dataset-help">支持其他学校或学期的 JSON 数据。导入会替换当前课程数据；重新选择预设即可切回。导入文件仅在当前页面使用。</p>
+    <button class="export export2 ds-filebtn" id="pickPresetFile">选择 JSON 数据文件</button>
+    <p class="dataset-help">文件格式：课程对象组成的 JSON 数组。<a href="README.md#导入其他学校的数据" target="_blank" rel="noopener">查看字段说明</a> · <a href="presets/2026秋-基地.json" download>下载示例数据</a></p>
+    <input type="file" id="presetFileInput" accept=".json,application/json" multiple hidden>
+    <div class="note">线上版会自动加载勾选的预设。若你是<b>双击 index.html 本地打开</b>（file://），浏览器不允许读取同目录 JSON——请改用本地服务器（<code>python3 -m http.server</code>）或访问在线版；也可点上方按钮手动选择 <code>presets/*.json</code> 文件加载。</div>
+  </div>
+</aside>
+
+<div id="toast"></div>
+
+<script>
+/* ============ 数据集层：课程数据从 presets/*.json 加载（工具与数据分离） ============ */
+const SYLLABI_URLS={};           // code -> syllabus url（加载时由 rec.syl 回填，供既有逻辑复用）
+let COURSES=[];                  // 合并后的课程记录（含 id/ds/syl）
+let MANIFEST=[];                 // presets/manifest.json
+const activePresets=new Set(JSON.parse(localStorage.getItem('ucas-active-presets')||'[]'));
+function setHeroStats(){
+
+  $('statTotal').textContent=COURSES.length;
+  $('statCollege').textContent=new Set(COURSES.map(c=>c.college)).size;
+  $('statFirst').textContent=new Set(COURSES.map(c=>c.first)).size;
+  $('statCat').textContent=new Set(COURSES.map(c=>c.category)).size;
+}
+function fillSyllabusMap(){Object.keys(SYLLABI_URLS).forEach(k=>delete SYLLABI_URLS[k]);COURSES.forEach(c=>{if(c.syl)SYLLABI_URLS[c.code]=c.syl});}
+function courseIdentity(c){const {id,...record}=c;return JSON.stringify(record)}
+function rebuildCourses(rowsList){
+  const previous=COURSES.length?new Set(COURSES.filter(c=>selected.has(c.id)).map(courseIdentity)):null;
+  COURSES=[];let nid=1;const seen=new Set();
+  rowsList.forEach(rows=>rows.forEach(r=>{const code=r.code;const key=courseIdentity(r);if(!code||seen.has(key))return;seen.add(key);COURSES.push(Object.assign({},r,{id:nid++}));}));
+  state.semester=state.semester.filter(term=>COURSES.some(c=>c.semester===term));
+  if(previous){selected=new Set(COURSES.filter(c=>previous.has(courseIdentity(c))).map(c=>c.id));saveSelected();}
+  fillSyllabusMap();pruneSelected();render();updateSelectedUI();
+}
+function pruneSelected(){
+  const ids=new Set(COURSES.map(c=>c.id));let ch=false;
+  [...selected].forEach(id=>{if(!ids.has(id)){selected.delete(id);ch=true;}});
+  if(ch)saveSelected();
+}
+async function fetchJSON(p){const r=await fetch(p);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+async function boot(){
+  try{MANIFEST=await fetchJSON('presets/manifest.json');}
+  catch(e){$('dataBanner').hidden=false;$('datasetStatus').textContent='预设加载失败，可重试或导入本地数据';render();return;}
+  if(!activePresets.size)MANIFEST.filter(p=>p.default).forEach(p=>activePresets.add(p.id));
+  await applyPresets();
+}
+async function applyPresets(){
+  $('datasetStatus').textContent='正在加载所选预设…';
+  const rowsList=[];const loaded=[];let fails=0;
+  for(const p of MANIFEST){if(!activePresets.has(p.id))continue;try{rowsList.push(await fetchJSON('presets/'+p.file));loaded.push(p.name);}catch(e){fails++;}}
+  localStorage.setItem('ucas-active-presets',JSON.stringify([...activePresets]));
+  rebuildCourses(rowsList);
+  $('dataBanner').hidden=!fails;
+  $('datasetStatus').textContent=(loaded.length?'当前预设：'+loaded.join('、'):'尚未选择数据集，请选择预设或导入课程数据')+(fails?' · 部分数据加载失败':'');
+  renderDatasetUI();
+}
+function renderDatasetUI(){
+  const el=$('presetList');if(!el)return;
+  el.innerHTML=MANIFEST.length?MANIFEST.map(p=>{
+    const checked=activePresets.has(p.id)?'checked':'';
+    return `<label class="preset-item"><input type="checkbox" data-pid="${esc(p.id)}" ${checked}><span class="pi-name">${esc(p.name)}</span><span class="pi-meta">${p.count} 门 · ${p.withSchedule} 门有排课</span></label>`;
+  }).join(''):'<div class="empty" style="padding:16px"><strong>未找到预设清单</strong>请确认 presets/manifest.json 存在。</div>';
+}
+const $=id=>document.getElementById(id);
+const DAY_CN=['','周一','周二','周三','周四','周五','周六','周日'];
+const PERIOD_START={1:'08:00',2:'08:55',3:'09:50',4:'10:45',5:'13:30',6:'14:25',7:'15:20',8:'16:15',9:'17:10',10:'18:30',11:'19:25',12:'20:20',13:'21:15'};
+const COLORS=['#3f66cf','#14856e','#c97b22','#7a4fb3','#c0392b','#0f8a9d','#8a6d1c','#4e8a3a','#8b4d7a','#b5552a','#3f7d8f','#6d7f2e'];
+const CAL={autumn:{start:[2026,7,31],weeks:20},spring:{start:[2027,1,22],weeks:16}};
+function activeCal(){
+  const terms=state.semester.length?state.semester:[...new Set(selectedCourses().map(c=>c.semester))];
+  if(terms.length===1&&terms[0]==='2026年秋季学期')return CAL.autumn;
+  if(terms.length===1&&terms[0]==='2027年春季学期')return CAL.spring;
+  const weeks=COURSES.filter(c=>!state.semester.length||state.semester.includes(c.semester)).flatMap(c=>(c.slots||[]).flatMap(s=>[...parseWeeks(s.w)]));
+  return {start:null,weeks:Math.max(1,...weeks)};
+}
+function weekDates(cal,week){if(!cal.start)return null;const b=cal.start;const base=new Date(b[0],b[1],b[2]+(week-1)*7);return [...Array(7)].map((_,i)=>new Date(b[0],b[1],b[2]+(week-1)*7+i))}
+function dFmt(d){return (d.getMonth()+1)+'/'+d.getDate()}
+function mdFmt(d){return (d.getMonth()+1)+'月'+d.getDate()+'日'}
+
+const state={search:'',semester:[],college:[],first:[],second:[],category:[],campus:[],credits:[],exam:[],day:[],noConflict:false,page:1,pageSize:50,sort:'college',dir:1,onlySelected:false,view:'list',ttMode:'overview',week:1,showNoSched:true};
+let selected=new Set((JSON.parse(localStorage.getItem('ucas-course-selected')||'[]')||[]).map(Number));
+if(!localStorage.getItem('ucas-course-selected')){
+  const legacy=JSON.parse(localStorage.getItem('ucas-course-selected-codes')||'[]');
+  if(Array.isArray(legacy)&&legacy.length){
+    const idByCode={};
+    COURSES.forEach(c=>{const cur=idByCode[c.code];if(!cur||(c.semester==='秋季'&&cur[1]!=='秋季'))idByCode[c.code]=[c.id,c.semester]});
+    legacy.forEach(code=>{const hit=idByCode[code];if(hit)selected.add(hit[0])});
+    localStorage.setItem('ucas-course-selected',JSON.stringify([...selected]));
+  }
+}
+const collator=new Intl.Collator('zh-CN',{numeric:true,sensitivity:'base'});
+const fields=['semester','college','first','second','category','campus','credits','exam','day'];
+const labels={semester:'全部学期',college:'全部院系',first:'全部一级学科',second:'全部二级学科',category:'全部课程类别',campus:'全部校区',credits:'全部学分',exam:'全部考试方式',day:'全部星期'};
+
+function norm(v){return (v??'').toString().trim().toLowerCase()}
+function teacherText(c){return (c.main||c.chief||c.convener||'').trim()||(c.ta||'')}
+function searchText(c){
+  return [c.name,c.code,c.college,c.discipline,c.first,c.second,c.category,c.campus,c.en,c.exam,c.level,
+    c.room,c.main,c.chief,c.convener,c.ta,(c.slots||[]).map(s=>DAY_CN[s.day]+s.p+' '+s.w).join(' ')].map(norm).join(' ');
+}
+function match(c,exclude){
+  if(state.onlySelected && !selected.has(c.id)) return false;
+  if(state.noConflict && !selected.has(c.id) && conflictsWithSelected(c)) return false;
+  if(state.search){const q=norm(state.search); if(!searchText(c).includes(q))return false}
+  if(exclude!=='semester' && state.semester.length && !state.semester.includes(c.semester))return false;
+  if(exclude!=='day' && state.day.length && !(c.slots||[]).some(s=>state.day.includes(String(s.day))))return false;
+  for(const f of ['college','first','second','category','campus','exam']) if(exclude!==f && state[f].length && !state[f].includes(c[f]))return false;
+  if(exclude!=='credits' && state.credits.length && !state.credits.includes(String(c.credits)))return false;
+  return true;
+}
+function filterData(exclude){return COURSES.filter(c=>match(c,exclude))}
+function optionText(value,count){return `${value} · ${count}`}
+function fillSelect(field){
+  const el=$(field), current=state[field], counts=new Map();
+  (field==='semester'?COURSES:filterData(field)).forEach(c=>{
+    const values=field==='day'?[...new Set((c.slots||[]).map(s=>String(s.day)))]:[field==='credits'?String(c.credits):c[field]];
+    values.filter(v=>v!=null&&v!=='').forEach(v=>counts.set(v,(counts.get(v)||0)+1));
+  });
+  const vals=[...new Set([...counts.keys(),...current])].sort((a,b)=>(field==='credits'||field==='day')?(Number(a)-Number(b)):collator.compare(a,b));
+  const display=v=>field==='day'?DAY_CN[Number(v)]:v;
+  const summary=current.length?current.map(display).join('、'):labels[field];
+  $(field+'Summary').textContent=summary;
+  el.querySelector('summary').title=summary;
+  el.classList.toggle('has-selection',current.length>0);
+  const focused=el.contains(document.activeElement)?document.activeElement.value:null;
+  el.querySelector('.multi-options').innerHTML=vals.length?vals.map(v=>`<label class="multi-option"><input type="checkbox" value="${esc(v)}" ${current.includes(v)?'checked':''}><span>${esc(display(v))}</span><small>${counts.get(v)||0}</small></label>`).join(''):'<p class="dataset-help">暂无可选项，试试放宽其他筛选。</p>';
+  filterOptions(el);
+  if(focused!==null)[...el.querySelectorAll('input[type="checkbox"]')].find(x=>x.value===focused)?.focus({preventScroll:true});
+}
+function filterOptions(el){
+  const query=norm(el.querySelector('.multi-search').value);
+  el.querySelectorAll('.multi-option').forEach(row=>{row.hidden=!norm(row.querySelector('span').textContent).includes(query)});
+}
+
+function badgeClass(cat){if(cat.includes('公共'))return'b-public';if(cat.includes('核心'))return'b-core';if(cat==='专业课')return'b-pro';if(cat.includes('研讨'))return'b-seminar';if(cat.includes('实验')||cat.includes('实践'))return'b-lab';return'b-other'}
+function fmtNum(v){return Number(v)%1===0?String(Number(v)):String(v)}
+function seatOf(c){return (c.capacity==null||c.capacity==='')?null:c.capacity-(c.enrolled||0)}
+function seatClass(seat){if(seat==null)return'';if(seat<=0)return'full';if(seat<=5)return'low';return'ok'}
+function seatHTML(c){
+  const seat=seatOf(c);
+  if(seat==null)return'<span class="seat-text">不限</span>';
+  const cls=seatClass(seat);
+  return `<span class="seat ${cls}">${seat}</span><span class="seat-text">已选 ${c.enrolled||0}/${c.capacity}</span>`;
+}
+function slotChips(c){
+  const slots=c.slots||[];
+  if(!slots.length)return'<span class="seat-text">—</span>';
+  const chips=slots.slice(0,4).map(s=>`<span class="slot-chip ${slots.length>1?'multi':''}" title="${s.w}">${DAY_CN[s.day]}${s.p}</span>`).join('');
+  return chips+(c.room?`<span class="slot-chip"><span class="room">${esc(c.room)}</span></span>`:'');
+}
+function sortedData(){
+  const arr=filterData(); const f=state.sort,d=state.dir;
+  arr.sort((a,b)=>{
+    if(f==='hours'||f==='credits')return (a[f]-b[f])*d;
+    if(f==='seat'){const x=seatOf(a),y=seatOf(b); if(x==null&&y==null)return 0; if(x==null)return 1; if(y==null)return -1; if(x===y)return 0; return (x-y)*d}
+    if(f==='teacher')return collator.compare(teacherText(a),teacherText(b))*d;
+    return collator.compare(String(a[f]),String(b[f]))*d;
+  });
+  return arr;
+}
+let filtersCollapsed=localStorage.getItem('ucas-filters-collapsed')==='true';
+function renderFilterSummary(){
+  $('filterDetails').hidden=filtersCollapsed;
+  $('filterPanel').classList.toggle('collapsed',filtersCollapsed);
+  $('toggleFilters').setAttribute('aria-expanded',String(!filtersCollapsed));
+  $('toggleFilters').innerHTML=filtersCollapsed?'展开筛选 <span aria-hidden="true">⌄</span>':'收起筛选 <span aria-hidden="true">⌃</span>';
+  const tags=fields.flatMap(f=>state[f].map(value=>({field:f,value,label:$(f+'Label').textContent+'：'+(f==='day'?DAY_CN[Number(value)]:value)})));
+  if(state.onlySelected)tags.push({field:'onlySelected',value:'',label:'仅看已选'});
+  if(state.noConflict)tags.push({field:'noConflict',value:'',label:'不看冲突'});
+  $('filterTags').hidden=!filtersCollapsed||!tags.length;
+  $('filterTags').innerHTML=tags.map(t=>`<button class="filter-tag" data-field="${t.field}" data-value="${esc(t.value)}" title="移除${esc(t.label)}" aria-label="移除${esc(t.label)}"><span>${esc(t.label)}</span><span aria-hidden="true">×</span></button>`).join('')+(tags.length?'<button class="filter-reset" data-clear-filters>清空筛选</button>':'');
+}
+function render(){
+  setHeroStats();
+  fields.forEach(fillSelect);
+  renderFilterSummary();
+  if(state.view==='timetable'){renderTimetable();$('listView').hidden=true;$('timetableView').hidden=false;}
+  else{$('listView').hidden=false;$('timetableView').hidden=true;renderList();}
+  document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('active',b.dataset.v===state.view));
+  updateConflictBadge();
+}
+function renderList(){
+  const arr=sortedData(); const total=arr.length; $('resultCount').textContent=total;
+  const creditTotal=arr.reduce((s,c)=>s+c.credits,0); $('resultSub').textContent=`当前结果合计 ${fmtNum(creditTotal)} 学分（课程学分简单相加，仅作浏览统计）`;
+  const pages=Math.max(1,Math.ceil(total/state.pageSize)); if(state.page>pages)state.page=pages; const start=(state.page-1)*state.pageSize,end=Math.min(total,start+state.pageSize); const view=arr.slice(start,end);
+  $('tbody').innerHTML=view.map(c=>{
+    const en=esc(c.en||'');
+    return `<tr>
+    <td><button class="star ${selected.has(c.id)?'on':''}" data-id="${c.id}" title="${selected.has(c.id)?'移出已选':'加入已选'}">★</button></td>
+    <td><div class="course-name"><span class="name-link" data-detail="${c.id}" title="${esc(c.name)}">${esc(c.name)}</span>${en?`<small>${en}</small>`:''}</div></td>
+    <td class="num"><b>${fmtNum(c.credits)}</b></td>
+    <td class="teacher">${teacherText(c)?esc(teacherText(c)):'<span class="seat-text">—</span>'}</td>
+    <td class="method">${esc(c.exam||'—')}</td><td class="method">${esc(c.teach||'—')}</td>
+    <td style="min-width:170px">${slotChips(c)}</td>
+    <td><span class="badge ${badgeClass(c.category)}">${esc(c.category)}</span></td><td class="level">${esc(c.level||'—')}</td><td class="nowrap">${esc(c.campus)}</td><td class="nowrap semester ${c.semester.includes('秋季')?'autumn':'spring'}">${esc(c.semester)}</td>
+    <td class="num">${seatHTML(c)}</td><td class="num">${fmtNum(c.hours)}</td>
+    <td class="college">${esc(c.college)}</td><td class="subj">${esc(c.first)}</td><td class="subj">${esc(c.second)}</td><td class="code">${SYLLABI_URLS[c.code]?`<a href="${SYLLABI_URLS[c.code]}" target="_blank" rel="noopener" title="查看课程大纲">${esc(c.code)}</a>`:esc(c.code)}</td></tr>`;
+  }).join('');
+  $('empty').hidden=total!==0; document.querySelector('#listView table').style.display=total?'table':'none';
+  $('rangeText').textContent=total?`显示 ${start+1}–${end} / ${total}`:'0 条结果'; $('pageNow').textContent=`${state.page} / ${pages}`; $('prev').disabled=state.page<=1; $('next').disabled=state.page>=pages;
+  $('onlySelected').classList.toggle('active',state.onlySelected); $('onlySelected').textContent=state.onlySelected?'★ 正在仅看已选':'☆ 仅看已选'; $('onlyNoConflict').classList.toggle('active',state.noConflict);$('onlyNoConflict').setAttribute('aria-pressed',String(state.noConflict)); $('onlyNoConflict').textContent='不看冲突';
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+/* ================== 周次 / 冲突 ================== */
+const _wkCache=new Map();
+function parseWeeks(str){
+  if(_wkCache.has(str))return _wkCache.get(str);
+  const set=new Set();
+  if(str){for(const part of String(str).replace(/[第周\s]/g,'').split(',')){const m=part.split('-'); if(m.length===2){for(let i=+m[0];i<=+m[1];i++)set.add(i);}else if(m[0])set.add(+m[0]);}}
+  _wkCache.set(str,set); return set;
+}
+function fmtWeeks(arr){
+  if(!arr.length)return'';
+  const runs=[]; let s=arr[0],p=arr[0];
+  for(const w of arr.slice(1)){if(w===p+1){p=w}else{runs.push(s===p?`${s}`:`${s}-${p}`);s=p=w;}}
+  runs.push(s===p?`${s}`:`${s}-${p}`);
+  return '第'+runs.join(',')+'周';
+}
+function computeConflicts(picks,week){
+  const seen=new Set(),out=[];
+  for(let i=0;i<picks.length;i++)for(const sa of (picks[i].slots||[])){
+    for(let j=i+1;j<picks.length;j++)for(const sb of (picks[j].slots||[])){
+      if(picks[i].semester!==picks[j].semester)continue;
+      if(sa.day!==sb.day)continue;
+      if(sa.start>sb.end||sb.start>sa.end)continue;
+      const wa=parseWeeks(sa.w),wb=parseWeeks(sb.w);
+      let inter=[...wa].filter(x=>wb.has(x)).sort((a,b)=>a-b);
+      if(week>0)inter=inter.filter(w=>w===week);
+      if(!inter.length)continue;
+      const key=[picks[i].code,picks[j].code].sort().join('|')+'|'+sa.day+'|'+sa.start+'-'+sa.end+'|'+sb.start+'-'+sb.end;
+      if(seen.has(key))continue; seen.add(key);
+      out.push({a:picks[i],b:picks[j],sa,sb,weeks:inter});
+    }
+  }
+  return out;
+}
+function conflictsWithSelected(c){
+  for(const s of selectedCourses()){
+    if(s.id===c.id||s.semester!==c.semester)continue;
+    for(const sa of (c.slots||[]))for(const sb of (s.slots||[])){
+      if(sa.day!==sb.day)continue;
+      if(sa.start>sb.end||sb.start>sa.end)continue;
+      const wa=parseWeeks(sa.w),wb=parseWeeks(sb.w);
+      if([...wa].some(w=>wb.has(w)))return true;
+    }
+  }
+  return false;
+}
+function selectedCourses(){return COURSES.filter(c=>selected.has(c.id))}
+function updateConflictBadge(){
+  const picks=selectedCourses();
+  const n=computeConflicts(picks,0).length;
+  const el=$('heroConflict'); el.hidden=n===0; el.textContent=n;
+  el.title=n?`已选课程中存在 ${n} 处时间冲突`:'无时间冲突';
+}
+
+/* ================== 模拟课程表 ================== */
+const ROW_H=46;
+function renderTimetable(){
+  const picks=selectedCourses().filter(c=>!state.semester.length||state.semester.includes(c.semester));
+  const withSlots=picks.filter(c=>c.slots&&c.slots.length);
+  const noSlots=picks.filter(c=>!c.slots||!c.slots.length);
+  const cal=activeCal(),mode=state.ttMode;
+  if(state.week<1||state.week>cal.weeks)state.week=1;
+  const week=mode==='weekly'?state.week:0;
+  document.querySelectorAll('#ttModeSeg button').forEach(b=>b.classList.toggle('active',b.dataset.m===mode));
+  $('weekNav').hidden=mode!=='weekly';
+  $('ttCount').textContent=`· 已排课 ${withSlots.length} 门 / 已选 ${picks.length} 门`;
+  if(mode==='weekly'){
+    const dts=weekDates(cal,state.week);
+    $('weekLabel').textContent=`第 ${state.week} 周`;
+    $('weekPrev').disabled=state.week<=1;
+    $('weekNext').disabled=state.week>=cal.weeks;
+    let cnt=0;withSlots.forEach(c=>(c.slots||[]).forEach(s=>{if(parseWeeks(s.w).has(state.week))cnt++}));
+    $('ttSub').textContent=`第 ${state.week} 周 · ${dts?mdFmt(dts[0])+' ~ '+mdFmt(dts[6]):'按教学周显示，未指定单一学期校历'} · 本周 ${cnt} 个上课时段`;
+  }else{
+    $('ttSub').textContent='整学期总览：显示全部上课时段。切到「每周课表」可查看每周日期与实际课程';
+  }
+  const conflicts=computeConflicts(withSlots,week);
+  $('conflictCount').textContent=conflicts.length;
+  $('conflictPanel').classList.toggle('show',conflicts.length>0);
+  $('conflictList').innerHTML=conflicts.map(cf=>{
+    const weeks=week>0?`第 ${state.week} 周`:`${fmtWeeks(cf.weeks)}`;
+    return `<div class="conflict-item"><span class="vs">⚠ 冲突</span><b>${esc(cf.a.name)}</b><span>×</span><b>${esc(cf.b.name)}</b><span class="where">${DAY_CN[cf.sa.day]} ${cf.sa.p} / ${cf.sb.p}</span><span>${weeks}</span></div>`;
+  }).join('');
+  const confSet=new Set();
+  conflicts.forEach(cf=>{confSet.add(cf.a.code+'|'+cf.sa.day+'|'+cf.sa.start+'-'+cf.sa.end);confSet.add(cf.b.code+'|'+cf.sb.day+'|'+cf.sb.start+'-'+cf.sb.end);});
+  const colorIdx={}; withSlots.forEach((c,i)=>colorIdx[c.code]=COLORS[i%COLORS.length]);
+  const times=[...Array(13)].map((_,i)=>`<div class="time-cell"><b>第${i+1}节</b><span>${PERIOD_START[i+1]||''}</span></div>`).join('');
+  const dts=mode==='weekly'?weekDates(cal,state.week):null;
+  let html=`<div class="tt-grid-wrap"><div class="tg">
+    <div class="t-corner">节次</div>
+    ${[1,2,3,4,5,6,7].map(d=>dayHeadHTML(d,mode,dts)).join('')}
+    <div class="times-col">${times}</div>
+    ${[1,2,3,4,5,6,7].map(d=>dayColHTML(d,withSlots,week,confSet,colorIdx)).join('')}
+  </div></div>`;
+  if(!withSlots.length){
+    html=`<div class="tt-empty"><strong>还没有可排课表的已选课程</strong>先回到课程列表，点击课程左侧的 ★ 加入已选（秋季排课课程才会显示上课时间）。</div>`;
+  }
+  const chips=withSlots.map(c=>{
+    const seat=seatOf(c),cls=seatClass(seat);
+    return `<span class="chip-s"><i style="background:${colorIdx[c.code]}"></i><span class="ch-name">${esc(c.name)}</span><span>${(c.slots||[]).length} 个时段</span>${seat==null?'':`<span class="ch-seat ${cls}">余 ${seat}</span>`}</span>`;
+  }).join('');
+  const noSchedHTML=state.showNoSched&&noSlots.length?`<div class="no-sched"><b>以下已选课程暂无排课信息</b>（多为春季学期课程或未排课，无法在课程表中显示）：${noSlots.map(c=>esc(c.name)).join('、')}</div>`:'';
+  $('ttBody').innerHTML=html+`<div class="sched-summary">${chips}</div>`+noSchedHTML;
+}
+function dayHeadHTML(d,mode,dts){
+  const dot=d>=6?'<span class="dot"></span>':'';
+  const cls=`t-day${d>=6?' week':''}`;
+  if(mode!=='weekly'||!dts)return`<div class="${cls}">${DAY_CN[d]}${dot}</div>`;
+  return`<div class="${cls}">${DAY_CN[d]}${dot}<span class="tt-day-date">${dFmt(dts[d-1])}</span></div>`;
+}
+function dayColHTML(day,withSlots,week,confSet,colorIdx){
+  const entries=[];
+  withSlots.forEach(c=>(c.slots||[]).forEach(s=>{
+    if(s.day!==day)return;
+    if(week>0&&!parseWeeks(s.w).has(week))return;
+    entries.push({c,s});
+  }));
+  if(!entries.length)return`<div class="day-col ${day>=6?'sat':''}"></div>`;
+  const sorted=[...entries].sort((a,b)=>a.s.start-b.s.start);
+  const tracks=[];
+  for(const e of sorted){
+    let placed=false;
+    for(let t=0;t<tracks.length;t++){const last=tracks[t][tracks[t].length-1]; if(e.s.start>last.s.end){tracks[t].push(e);e.track=t;placed=true;break;}}
+    if(!placed){tracks.push([e]);e.track=tracks.length-1;}
+  }
+  const trackW=100/tracks.length;
+  let blocks='';
+  for(const e of entries){
+    const key=e.c.code+'|'+e.s.day+'|'+e.s.start+'-'+e.s.end;
+    const clash=confSet.has(key);
+    const color=colorIdx[e.c.code]||'#8893a8';
+    const top=(e.s.start-1)*ROW_H, h=(e.s.end-e.s.start+1)*ROW_H-3;
+    blocks+=`<div class="slot-block${clash?' conflict':''}" data-detail="${e.c.id}"
+      style="top:${top}px;height:${h}px;left:calc(${e.track}*${trackW}% + 1px);width:calc(${trackW}% - 3px);background:${color}4d;color:${ink(color)};border-color:${clash?'':color+'99'}"
+      title="${esc(e.c.name)} · ${DAY_CN[e.s.day]}${e.s.p} · ${e.s.w}${e.c.room?' · '+esc(e.c.room):''}">
+      <div class="sb-name">${esc(e.c.name)}</div>
+      <div class="sb-time">${e.s.p}节 · ${e.s.w}</div>
+      ${e.c.room?`<div class="sb-time">${esc(e.c.room)}</div>`:''}
+    </div>`;
+  }
+  return`<div class="day-col ${day>=6?'sat':''}" data-day="${day}">${blocks}</div>`;
+}
+function ink(hex){
+  // 课程色加深后作为浅色块上的文字色，保证对比度
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.round(((n>>16)&255)*0.45),g=Math.round(((n>>8)&255)*0.45),b=Math.round((n&255)*0.45);
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+/* ================== 详情抽屉 ================== */
+function openDetail(id){
+  const c=COURSES.find(x=>x.id===Number(id)); if(!c)return;
+  const seat=seatOf(c),scls=seatClass(seat);
+  const pct=seat==null?0:Math.min(100,Math.round(((c.enrolled||0)/(c.capacity||1))*100));
+  const barColor=seat==null?'#eef1f6':(seat<=0?'#c0392b':(seat<=5?'#d97b29':'#3f66cf'));
+  const slots=c.slots||[];
+  const scheduleTable=slots.length?`<table class="dd-schedule"><thead><tr><th>星期</th><th>节次</th><th>开课周</th><th>教室</th></tr></thead><tbody>${slots.map(s=>`<tr><td>${DAY_CN[s.day]}</td><td>${s.p} 节</td><td>${esc(s.w)}</td><td>${esc(c.room||'—')}</td></tr>`).join('')}</tbody></table>`:'<p style="color:#8a95a8;font-size:13px">该课程暂无排课信息（春季学期或未排课）。</p>';
+  const teacherRows=[['首席教授',c.chief,c.chiefUnit],['主讲教师',c.main,c.mainUnit],['助教',c.ta,c.taUnit],['召集人',c.convener,'']].filter(r=>r[1]).map(r=>`<div class="row"><span class="who">${r[0]}：${esc(r[1])}</span>${r[2]?`<span class="unit">${esc(r[2])}</span>`:''}</div>`).join('');
+  $('detailBody').innerHTML=`
+    <div class="dd-title"><h2>${esc(c.name)}</h2>${c.en?`<div class="en">${esc(c.en)}</div>`:''}<span class="code">${SYLLABI_URLS[c.code]?`<a href="${SYLLABI_URLS[c.code]}" target="_blank" rel="noopener">${esc(c.code)}</a>`:esc(c.code)}</span>${SYLLABI_URLS[c.code]?` <a class="dd-syl" href="${SYLLABI_URLS[c.code]}" target="_blank" rel="noopener">📄 查看教学大纲 ↗</a>`:''}</div>
+    <div class="dd-grid">
+      <div class="dd-item"><label>开课院系</label><b>${esc(c.college)}</b></div>
+      <div class="dd-item"><label>培养层次</label><b>${esc(c.level||'—')}</b></div>
+      <div class="dd-item"><label>学期 · 校区</label><b>${esc(c.semester)} · ${esc(c.campus)}</b></div>
+      <div class="dd-item"><label>课程类别</label><span class="badge ${badgeClass(c.category)}">${esc(c.category)}</span></div>
+      <div class="dd-item"><label>所属学科</label><b>${esc(c.discipline||'—')}</b></div>
+      <div class="dd-item"><label>学科归类</label><b>${esc(c.first)} / ${esc(c.second)}</b></div>
+      <div class="dd-item"><label>学时 / 学分</label><b>${fmtNum(c.hours)} 学时 / ${fmtNum(c.credits)} 学分</b></div>
+      <div class="dd-item"><label>教室</label><b>${esc(c.room||'—')}</b></div>
+    </div>
+    <div class="dd-sec"><h3>授课安排</h3>${scheduleTable}</div>
+    ${teacherRows?`<div class="dd-sec"><h3>任课教师</h3><div class="dd-teacher">${teacherRows}</div></div>`:''}
+    <div class="dd-sec"><h3>教学与考核</h3><div class="dd-kv">
+      <div class="kv"><label>授课方式</label><b>${esc(c.teach||'—')}</b></div>
+      <div class="kv"><label>考试方式</label><b>${esc(c.exam||'—')}</b></div>
+    </div></div>
+    <div class="dd-sec"><h3>选课人数</h3><div class="dd-kv">
+      <div class="kv"><label>限选人数</label><b>${c.capacity==null?'不限':fmtNum(c.capacity)}</b></div>
+      <div class="kv"><label>已选人数</label><b>${c.enrolled||0}</b></div>
+      <div class="kv"><label>剩余名额</label><b class="seat ${scls}">${seat==null?'—':seat}</b></div>
+    </div>${c.capacity?`<div class="seat-bar"><i style="width:${pct}%;background:${barColor}"></i></div>`:''}</div>
+    <button class="dd-star ${selected.has(c.id)?'on':''}" data-id="${c.id}">${selected.has(c.id)?'★ 移出已选':'☆ 加入已选'}</button>`;
+  $('detailDrawer').classList.add('open'); $('mask').classList.add('open');
+}
+
+/* ================== 已选 / 抽屉 ================== */
+function conflictMsgFor(c){
+  const picks=selectedCourses().filter(x=>x.id!==c.id);
+  const cf=computeConflicts([...picks,c],0).filter(x=>x.a.code===c.code||x.b.code===c.code);
+  if(!cf.length)return'';
+  const first=cf[0]; const other=first.a.code===c.code?first.b:first.a;
+  return `与《${other.name}》在 ${DAY_CN[first.sa.day]}${first.sa.p} 冲突（${fmtWeeks(first.weeks)}）`;
+}
+function toggleSelect(id,quiet){
+  const c=COURSES.find(x=>x.id===id); if(!c)return;
+  if(selected.has(id)){
+    selected.delete(id);
+    if(!quiet)toast(`已移出：${c.name}`);
+  }else{
+    const seat=seatOf(c);
+    if(seat!=null&&seat<=0&&!quiet){toast(`⚠ 《${c.name}》已选满（${c.enrolled}/${c.capacity}），可能无法选上`,true);}
+    selected.add(id);
+    if(!quiet){
+      const msg=conflictMsgFor(c);
+      toast(msg?`⚠ 已加入，但${msg}`:`已加入：${c.name}`);
+    }
+  }
+  saveSelected(); updateSelectedUI(); updateConflictBadge();
+  if(state.view==='timetable')renderTimetable();
+  render();
+}
+function saveSelected(){localStorage.setItem('ucas-course-selected',JSON.stringify([...selected]))}
+function updateSelectedUI(){
+  const picks=selectedCourses(); const sum=picks.reduce((s,c)=>s+c.credits,0);
+  $('heroSelected').textContent=picks.length;
+  $('selectedSummary').textContent=`${picks.length} 门课程`;
+  $('creditSummary').textContent=`${fmtNum(sum)} 学分`;
+  $('selectedList').innerHTML=picks.length?picks.map(c=>{
+    const seat=seatOf(c),scls=seatClass(seat);
+    const warn=conflictMsgFor(c);
+    const teacher=teacherText(c);
+    const sched=(c.slots||[]).map(s=>`<div class="si-sched-item"><b>${DAY_CN[s.day]} ${s.p}节</b><span> · ${esc(s.w)}</span>${c.room?`<span> · ${esc(c.room)}</span>`:''}</div>`).join('');
+    const seatBlock=c.capacity==null
+      ?`<div class="si-seat">不限选人数${c.enrolled?` · 已选 ${c.enrolled}`:''}</div>`
+      :`<div class="si-seat">限选 ${fmtNum(c.capacity)} / 已选 ${c.enrolled||0} / <span class="seat ${scls}">余 ${seat}</span></div>`;
+    return `<div class="selected-item">
+      <div class="si-head"><b>${esc(c.name)}</b><button class="remove" data-id="${c.id}" title="移出已选">✕</button></div>
+      <div class="si-code">${SYLLABI_URLS[c.code]?`<a href="${SYLLABI_URLS[c.code]}" target="_blank" rel="noopener" title="查看课程大纲">${esc(c.code)}</a>`:esc(c.code)}</div>
+      <div class="si-meta">${esc(c.college)} · ${esc(c.semester)} · ${esc(c.campus)}</div>
+      <div class="si-meta"><span class="badge ${badgeClass(c.category)}">${esc(c.category)}</span>${c.level?` · ${esc(c.level)}`:''} · ${fmtNum(c.hours)} 学时 / ${fmtNum(c.credits)} 学分</div>
+      ${teacher?`<div class="si-meta">教师：${esc(teacher)}</div>`:''}
+      ${c.teach||c.exam?`<div class="si-meta">${c.teach?`授课：${esc(c.teach)}`:''}${c.teach&&c.exam?'　':''}${c.exam?`考试：${esc(c.exam)}`:''}</div>`:''}
+      ${sched?`<div class="si-sched"><div class="si-sched-label">上课安排</div>${sched}</div>`:'<div class="si-meta" style="color:#8a95a8">暂无排课信息（春季学期或未排课）</div>'}
+      ${seatBlock}
+      ${warn?`<div class="si-warn">⚠ ${esc(warn)}</div>`:''}
+    </div>`;
+  }).join(''):'<div class="empty"><strong>还没有已选课程</strong>点击课程左侧的星标即可加入已选。</div>';
+}
+function openDrawer(on=true){$('drawer').classList.toggle('open',on);$('mask').classList.toggle('open',on);updateSelectedUI()}
+function toast(msg,isWarn){
+  const t=$('toast'); t.textContent=msg; t.className='show'+(isWarn?' warn':'');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.className='',2800);
+}
+
+/* ================== 事件 ================== */
+$('search').addEventListener('input',e=>{state.search=e.target.value;state.page=1;render()});
+fields.forEach(f=>{
+  const el=$(f);
+  el.addEventListener('change',e=>{if(e.target.type!=='checkbox')return;state[f]=[...el.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);state.page=1;render()});
+  el.querySelector('.multi-search').addEventListener('input',()=>filterOptions(el));
+  el.querySelector('.multi-clear').onclick=()=>{state[f]=[];state.page=1;el.querySelector('.multi-search').value='';el.open=false;render();el.querySelector('summary').focus()};
+  el.addEventListener('toggle',()=>{if(el.open)fields.filter(x=>x!==f).forEach(x=>$(x).open=false)});
+  el.addEventListener('keydown',e=>{if(e.key==='Escape'){el.open=false;el.querySelector('summary').focus()}});
+});
+document.addEventListener('click',e=>fields.forEach(f=>{if(!$(f).contains(e.target))$(f).open=false}));
+
+$('toggleFilters').onclick=()=>{
+  filtersCollapsed=!filtersCollapsed;
+  fields.forEach(f=>$(f).open=false);
+  localStorage.setItem('ucas-filters-collapsed',String(filtersCollapsed));
+  renderFilterSummary();
+};
+$('filterTags').onclick=e=>{
+  if(e.target.closest('[data-clear-filters]')){$('clearFilters').click();$('toggleFilters').focus();return}
+  const tag=e.target.closest('[data-field]');if(!tag)return;
+  const f=tag.dataset.field;
+  const index=[...$('filterTags').querySelectorAll('[data-field]')].indexOf(tag);
+  if(fields.includes(f))state[f]=state[f].filter(v=>v!==tag.dataset.value);else state[f]=false;
+  state.page=1;render();
+  const remaining=$('filterTags').querySelectorAll('[data-field]');
+  (remaining[Math.min(index,remaining.length-1)]||$('toggleFilters')).focus({preventScroll:true});
+};
+$('clearFilters').onclick=()=>{Object.assign(state,{search:'',semester:[],college:[],first:[],second:[],category:[],campus:[],credits:[],exam:[],day:[],noConflict:false,page:1,onlySelected:false});$('search').value='';fields.forEach(f=>{$(f).querySelector('.multi-search').value='';$(f).open=false});render()};
+$('pageSize').onchange=e=>{state.pageSize=Number(e.target.value);state.page=1;render()};
+$('prev').onclick=()=>{if(state.page>1){state.page--;render();document.querySelector('.table-card').scrollIntoView({behavior:'smooth',block:'start'})}};
+$('next').onclick=()=>{state.page++;render();document.querySelector('.table-card').scrollIntoView({behavior:'smooth',block:'start'})};
+$('onlySelected').onclick=()=>{state.onlySelected=!state.onlySelected;state.page=1;render()};$('onlyNoConflict').onclick=()=>{state.noConflict=!state.noConflict;state.page=1;render()};
+document.querySelector('thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const f=th.dataset.sort;if(state.sort===f)state.dir*=-1;else{state.sort=f;state.dir=1}state.page=1;render()});
+$('tbody').addEventListener('click',e=>{
+  const st=e.target.closest('.star'); if(st){toggleSelect(Number(st.dataset.id));return}
+  const dl=e.target.closest('[data-detail]'); if(dl){openDetail(dl.dataset.detail);return}
+});
+document.querySelector('#viewSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  state.view=b.dataset.v; state.ttMode='overview'; state.week=1;
+  render();
+  if(state.view==='timetable')$('timetableView').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+$('openSelected').onclick=()=>openDrawer(true);
+$('closeDrawer').onclick=()=>openDrawer(false);$('mask').onclick=()=>{openDrawer(false);$('detailDrawer').classList.remove('open');$('changelogDrawer').classList.remove('open');$('datasetDrawer').classList.remove('open');$('mask').classList.remove('open')};$('openChangelog').onclick=()=>{$('changelogDrawer').classList.add('open');$('mask').classList.add('open')};$('closeChangelog').onclick=()=>{$('changelogDrawer').classList.remove('open');$('mask').classList.remove('open')};
+$('closeDetail').onclick=()=>{$('detailDrawer').classList.remove('open');$('mask').classList.remove('open')};
+$('openDataset').onclick=()=>{$('datasetDrawer').classList.add('open');$('mask').classList.add('open');renderDatasetUI()};
+$('importDataset').onclick=()=>{$('pickPresetFile').click()};
+$('closeDataset').onclick=()=>{$('datasetDrawer').classList.remove('open');$('mask').classList.remove('open')};
+$('presetList').addEventListener('change',e=>{const cb=e.target.closest('input[data-pid]');if(!cb)return;if(cb.checked)activePresets.add(cb.dataset.pid);else activePresets.delete(cb.dataset.pid);applyPresets();});
+$('pickPresetFile').onclick=()=>$('presetFileInput').click();
+$('presetFileInput').addEventListener('change',async e=>{const files=[...e.target.files];if(!files.length)return;const rowsList=[];for(const f of files){try{const rows=JSON.parse(await f.text());if(!Array.isArray(rows)||!rows.every(r=>r&&['code','name','semester','college','first','second','category','campus'].every(k=>typeof r[k]==='string')&&Number.isFinite(r.credits)&&Number.isFinite(r.hours)&&Array.isArray(r.slots)))throw new Error('格式不匹配');rowsList.push(rows);}catch(err){toast(f.name+' 格式不匹配，请参考数据集面板中的字段说明',true);e.target.value='';return}}e.target.value='';if(rowsList.length){rebuildCourses(rowsList);$('datasetDrawer').classList.remove('open');$('mask').classList.remove('open');$('dataBanner').hidden=true;$('datasetStatus').textContent='当前导入：'+files.map(f=>f.name).join('、');toast('已加载本地数据文件');}});
+$('bannerReload').onclick=()=>{location.reload()};
+$('ttBody').addEventListener('click',e=>{const b=e.target.closest('[data-detail]');if(b)openDetail(b.dataset.detail)});
+$('ttModeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.ttMode=b.dataset.m;renderTimetable()});
+$('weekPrev').onclick=()=>{if(state.week>1){state.week--;renderTimetable()}};
+$('weekNext').onclick=()=>{const cal=activeCal();if(state.week<cal.weeks){state.week++;renderTimetable()}};
+$('ttShowNoSched').onclick=e=>{state.showNoSched=!state.showNoSched;e.target.classList.toggle('active',state.showNoSched);renderTimetable()};
+$('selectedList').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(b){const id=Number(b.dataset.id);if(b.classList.contains('remove')){toggleSelect(id,true)}else{toggleSelect(id)}}});
+$('detailBody').addEventListener('click',e=>{const b=e.target.closest('.dd-star');if(b)toggleSelect(Number(b.dataset.id))});
+function wkFmt(w){return String(w||'').replace(/[第周]/g,'').split(',').map(x=>x.trim()).filter(Boolean).join('、')}
+function csvDownload(name,lines){const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+$('exportCsv').onclick=()=>{
+  const picks=selectedCourses(); if(!picks.length)return;
+  const headers=['课程名称','课程编码','开课院系','一级学科','二级学科/专业','课程类别','学期','校区','学时','学分','上课时间','教师','授课方式','考试方式','限选','已选','余量','课程大纲链接'];
+  const lines=[headers,...picks.map(c=>[c.name,c.code,c.college,c.first,c.second,c.category,c.semester,c.campus,c.hours,c.credits,(c.slots||[]).map(s=>DAY_CN[s.day]+s.p+'('+s.w+')').join(';'),teacherText(c),c.teach||'',c.exam||'',c.capacity==null?'不限':c.capacity,c.enrolled||0,seatOf(c)==null?'':seatOf(c),SYLLABI_URLS[c.code]||''])].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+  csvDownload('UCAS_已选课程信息.csv',lines);
+};
+$('exportTimetable').onclick=()=>{
+  const picks=selectedCourses();
+  const rows=[];
+  picks.forEach(c=>(c.slots||[]).forEach(s=>{rows.push([c.name,String(s.day),String(s.start),String(s.end),teacherText(c)||'无',c.room||'无',wkFmt(s.w)])}));
+  if(!rows.length){toast('没有可导出的排课（已选课程暂无排课信息）',true);return}
+  const headers=['课程名称','星期','开始节数','结束节数','老师','地点','周数'];
+  const lines=[headers,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+  csvDownload('UCAS_课程表.csv',lines);
+  toast(`已导出 ${rows.length} 条课程时段（WakeUp 格式）`);
+};
+
+boot();
+</script>
+</body>
+</html>
